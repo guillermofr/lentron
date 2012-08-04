@@ -7,6 +7,10 @@
 	socket.on('SC_game_status', function (data) {
 		$('#game').html(data);
 	});
+		
+	function RemoveCookie(name){
+		document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+	}
 
 	
 	// funciones para manejo de variables (COOKIES)
@@ -22,7 +26,16 @@
 
 	$(document).ready(function () {
 		console.log('username: '+ ReadCookie('username') + ' APIKEY: ' + ReadCookie('apikey'));
+		
+		$('#logout').click(function(){
+			RemoveCookie('apikey');
+			RemoveCookie('username');
+			document.location.reload();
+		});
+			
 	});
+	
+	
   
 </script>
 
@@ -34,4 +47,5 @@
 	logged in <BR>
 	WAITING STATUS...
 	</div>
+	<button id="logout">Salir</button>
 </body>

@@ -1,8 +1,34 @@
+<script src="./load/jquery.js"></script>
+<script>
+	// funciones para manejo de variables (COOKIES)
+	function ReadCookie(cookieName) {
+		var theCookie=" "+document.cookie;
+		var ind=theCookie.indexOf(" "+cookieName+"=");
+		if (ind==-1) ind=theCookie.indexOf(";"+cookieName+"=");
+		if (ind==-1 || cookieName=="") return "";
+		var ind1=theCookie.indexOf(";",ind+1);
+		if (ind1==-1) ind1=theCookie.length; 
+		return unescape(theCookie.substring(ind+cookieName.length+2,ind1));
+	}
 
+	$(document).ready(function () {
+		if (ReadCookie('apikey')){
+			console.log('hay cookie');
+			$('#nombre').val(ReadCookie('username'));
+			$('#apikey').val(ReadCookie('apikey'));
+			$('form').submit();
 
+		} else {
+			console.log('no hay cookie');
+			console.log('username: '+ ReadCookie('username') + ' APIKEY: ' + ReadCookie('apikey'));
+		}
+	});
+</script>
 <body>
 <form method="post" action="">
 <input id="nombre" type="text" name="username" placeholder="username" />
-<input id="password" type="password" name="password" placeholder="password" /> <button id="login"> Entrar </button> <br/>
+<input id="password" type="password" name="password" placeholder="password"  /> 
+<input id="apikey" type="hidden" name="apikey" />
+<button id="login"> Entrar </button> <br/>
 </form>
 </body>

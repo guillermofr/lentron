@@ -1,0 +1,37 @@
+<script src="./load/jquery.js"></script>
+<script src="./load/socket.io.js"></script>
+<script>
+
+	var socket = io.connect('http://localhost:415');
+  
+	socket.on('SC_game_status', function (data) {
+		$('#game').html(data);
+	});
+
+	
+	// funciones para manejo de variables (COOKIES)
+	function ReadCookie(cookieName) {
+		var theCookie=" "+document.cookie;
+		var ind=theCookie.indexOf(" "+cookieName+"=");
+		if (ind==-1) ind=theCookie.indexOf(";"+cookieName+"=");
+		if (ind==-1 || cookieName=="") return "";
+		var ind1=theCookie.indexOf(";",ind+1);
+		if (ind1==-1) ind1=theCookie.length; 
+		return unescape(theCookie.substring(ind+cookieName.length+2,ind1));
+	}
+
+	$(document).ready(function () {
+		console.log('username: '+ ReadCookie('username') + ' APIKEY: ' + ReadCookie('apikey'));
+	});
+  
+</script>
+
+
+
+<body>
+	
+	<div id="game">
+	logged in <BR>
+	WAITING STATUS...
+	</div>
+</body>

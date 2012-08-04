@@ -7,6 +7,13 @@
 	socket.on('SC_game_status', function (data) {
 		$('#game').html(data);
 	});
+	socket.on('SC_user_connect', function (data) {
+		$('#users').html(data);
+	});
+	socket.on('SC_user_disconnect', function (data) {
+		$('#users').html(data);
+	});
+	
 		
 	function RemoveCookie(name){
 		document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';

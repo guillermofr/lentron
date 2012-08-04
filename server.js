@@ -8,8 +8,29 @@ var fs = require('fs');
 
 //GAME 
 
+var partida = new Object();
+
+partida.turno = 0;
+
+partida.avanza_turno = function(){
+	this.turno = this.turno +1;
+	return this.turno;
+};
+
+partida.online = 0;
+
+partida.conecta = function(){
+	this.online = this.online+1;
+	return this.online;
+};
+partida.desconecta = function(){
+	this.online = this.online-1;
+	return this.online;
+};
+
+
 function make_game_status(){
-	return 'X = ' + Math.round(Math.random(34)*10);
+	return 'turno = ' + partida.turno + '<br>gente = <span id="users">' + partida.online + '</span>' ;
 }
 
 //SOCKET.IO
@@ -32,22 +53,28 @@ var io = require('socket.io');
 	}
 
 io.sockets.on('connection', function(socket) { 
+	partida.conecta();
 	//Cuando un cliente se conecta se le manda la información de partida
 	socket.emit('SC_game_status' , make_game_status());
 	//Tratar que un usuario se conecta
-	io.sockets.emit('SC_user_connect');
+	
+	io.sockets.emit('SC_user_connect',partida.online);
 	
 	//Tratar que un usuario se desconecta 
 	socket.on('disconnect', function () {
 		console.log('disconnect');
-		io.sockets.emit('SC_user_disconnect');
+		partida.desconecta();
+		io.sockets.emit('SC_user_disconnect',partida.online);
+		
 	});
 });
 
 setInterval(function() {
-	console.log('-- HEART BEAT ' + Math.round(Math.random(34)*10) + ' --');
+	
+	console.log('-- PASANDO AL TURNO Nº' + partida.avanza_turno() + ' --');
 	//actualizamos el estado del servidor en cada turno
 	io.sockets.emit('SC_game_status',make_game_status());
+	
 }, 5000);
 
 

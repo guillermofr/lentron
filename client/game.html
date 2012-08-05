@@ -2,11 +2,38 @@
 <script src="./load/socket.io.js"></script>
 <script>
 
+	//draw tablero
+	function draw(tablero){
+		$('#tablero').html('');
+		for (x= 0;x<tablero.length;x++){
+			for (y= 0;y<tablero[x].length;y++){
+				$('#tablero').append('[');
+				if (tablero[x][y].length == 0)
+					$('#tablero').append('_');
+				else {		
+					for (i=0;i<tablero[x][y].length;i++){
+						$('#tablero').append(''+tablero[x][y][i].id+'');
+					}
+				}
+				$('#tablero').append(']');
+			}
+			$('#tablero').append('<br>');
+		}
+	}
+	
+	
+	
+	
+	
+	
+	//socket io
 	var socket = io.connect('http://localhost:415');
   
 	socket.on('SC_game_status', function (data) {
 		$('#game').html('Turno = ' + data.turno + " <br> <span id='online'>" + data.online + ' Personas online</span>' );
-		
+		//console.log(data.tablero);
+		draw(data.tablero);
+		//$('#tablero').html(data.tablero);
 	});
 	
 	socket.on('SC_user_connect', function (data) {
@@ -17,13 +44,18 @@
 		$('#online').html( data.online + ' Personas online');
 	});
 	
-		
+	
+	
+	
+	
+	
+	
+	// funciones para manejo de variables (COOKIES)
 	function RemoveCookie(name){
 		document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 	}
 
-	
-	// funciones para manejo de variables (COOKIES)
+
 	function ReadCookie(cookieName) {
 		var theCookie=" "+document.cookie;
 		var ind=theCookie.indexOf(" "+cookieName+"=");
@@ -42,6 +74,18 @@
 			RemoveCookie('username');
 			document.location.reload(false);
 		});
+		
+		$('#set').click(function(){
+		
+			var pos = {
+				x : $('#x').val(),
+				y : $('#y').val(),
+				username : ReadCookie('username'),
+				apikey : ReadCookie('apikey')
+			};
+			socket.emit('CS_set',pos);
+			console.log(pos);
+		});
 			
 	});
 	
@@ -58,4 +102,9 @@
 	WAITING STATUS...
 	</div>
 	<button id="logout">Salir</button>
+	<div id="tablero"></div>
+	<input type="text" id="x" name="x" size="2" value="1"/>
+	<input type="text" id="y" name="y" size="2" value="1"/>
+	<button id="set">Setearse</button>
+	
 </body>

@@ -11,23 +11,28 @@ var md5 = require('MD5');
 
 var partida = {
 
+	width : 5,
+	height : 5,
+
 	init: function(){
 		//cargar persistencia si existe
 		//si no existe
-		this.tablero_create();
+		this.tablero_create(this.width,this.height);
 		//si existe, cargar el tablero relleno
 		
 		//petarlo de personas para ver si peta
-		this.hacer_gente(5000);
+		this.hacer_gente(0);
 	},
+	
+	
 	
 	turno : 0,
 	tablero : [],
 	
-	tablero_create : function(){
-		for (x = 0;x<500 ; x++){
+	tablero_create : function(width,height){
+		for (x = 0;x<width ; x++){
 			this.tablero[x] = [];
-			for (y = 0;y<500 ; y++){
+			for (y = 0;y<height ; y++){
 				this.tablero[x][y] = [];
 			}
 		}
@@ -64,7 +69,7 @@ var partida = {
 		var copy = new Object();
 		copy.online = this.online + '/' + this.num_users();
 		copy.turno = this.turno;
-		
+		copy.tablero = this.tablero;
 		return copy;
 	},
 	
@@ -89,7 +94,9 @@ var partida = {
 								x:null,
 								y:null
 							},
-						direction : null
+						direction : null,
+						live : true,
+						online: false
 						});
 		return this.num_users() -1;
 	},
@@ -99,6 +106,61 @@ var partida = {
 		return true
 	},
 	
+	tablero_move_user_start : function(move){
+		if ((move.to.x >= this.width || move.to.y >= this.height || move.to.x < 0 || move.to.y < 0) 
+		|| (this.tablero[move.to.x][move.to.y].length > 0))
+		return false;
+		if (move.from.x == null){
+			this.tablero[move.to.x][move.to.y].push({id:move.id,type:move.type});
+			return true;	
+		} else {
+			for (n = 0; n < this.tablero[move.from.x][move.from.y].length; n++){
+				if (this.tablero[move.from.x][move.from.y][n].id == move.id){
+					this.tablero[move.from.x][move.from.y].splice(n,1);
+					this.tablero[move.to.x][move.to.y].push({id:move.id,type:move.type});
+					return true;
+				}
+			}
+			return false;
+		}
+	},
+	
+	user_set : function(data){
+		var index = this.allowed(data.username,data.apikey);
+		if (index !== false){	
+			var move = {
+						id : index,
+						type : 'user',
+						from:{
+							x : this.users[index].pos.x,
+							y : this.users[index].pos.y,
+							},
+						to:{
+							x : data.x,
+							y : data.y,
+							}
+						};
+			
+			if (this.tablero_move_user_start(move)){	
+				this.users[index].pos.x = data.x;
+				this.users[index].pos.y = data.y;
+				this.users[index].pos.live = true;
+			}			
+		}
+	},
+	
+	allowed : function(user,apikey){
+		for (i = 0;i < this.num_users();i++){
+			if (this.users[i].username == user) {
+				if (this.users[i].apikey == apikey) {
+					return i;
+				} else {
+					return false;
+				}
+			}
+		}
+		return false;
+	},
 	
 	
 	login : function(user,password,apikey){
@@ -125,8 +187,6 @@ var partida = {
 }
 
 partida.init();
-
-
 
 function make_game_status(){
 	return partida.get_status();
@@ -165,6 +225,11 @@ io.sockets.on('connection', function(socket) {
 		console.log('disconnect');
 		partida.desconecta();
 		io.sockets.emit('SC_user_disconnect',make_game_status());
+	});
+	
+	socket.on('CS_set', function (data) {
+		partida.user_set(data);
+		io.sockets.emit('SC_game_status',make_game_status());
 	});
 	
 	socket.on('CS_move_top', function () {

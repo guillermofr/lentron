@@ -5,13 +5,16 @@
 	var socket = io.connect('http://localhost:415');
   
 	socket.on('SC_game_status', function (data) {
-		$('#game').html(data);
+		$('#game').html('Turno = ' + data.turno + " <br> <span id='online'>" + data.online + ' Personas online</span>' );
+		
 	});
+	
 	socket.on('SC_user_connect', function (data) {
-		$('#users').html(data);
+		$('#online').html( data.online + ' Personas online');
+		
 	});
 	socket.on('SC_user_disconnect', function (data) {
-		$('#users').html(data);
+		$('#online').html( data.online + ' Personas online');
 	});
 	
 		
@@ -37,7 +40,7 @@
 		$('#logout').click(function(){
 			RemoveCookie('apikey');
 			RemoveCookie('username');
-			document.location.reload();
+			document.location.reload(false);
 		});
 			
 	});

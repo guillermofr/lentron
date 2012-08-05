@@ -5,32 +5,131 @@
 
 console.log('SERVER ON');
 var fs = require('fs');
+var md5 = require('MD5');
 
 //GAME 
 
-var partida = new Object();
+var partida = {
 
-partida.turno = 0;
+	init: function(){
+		//cargar persistencia si existe
+		//si no existe
+		this.tablero_create();
+		//si existe, cargar el tablero relleno
+		
+		//petarlo de personas para ver si peta
+		this.hacer_gente(5000);
+	},
+	
+	turno : 0,
+	tablero : [],
+	
+	tablero_create : function(){
+		for (x = 0;x<500 ; x++){
+			this.tablero[x] = [];
+			for (y = 0;y<500 ; y++){
+				this.tablero[x][y] = [];
+			}
+		}
+	},
+	
+	avanza_turno : function(){
+		this.turno = this.turno +1;
+		
+		//console.log (JSON.stringify(this.tablero));
+		
+		return this.turno;
+	},
+	
 
-partida.avanza_turno = function(){
-	this.turno = this.turno +1;
-	return this.turno;
-};
+	
+	hacer_gente: function(gente){
+		for (x = 0;x<gente ; x++){
+			this.user_create(Math.random()*1000);
+		}
+	},
+	
+	online : 0,
 
-partida.online = 0;
+	conecta : function(){
+		this.online = this.online+1;
+		return this.online;
+	},
+	desconecta : function(){
+		this.online = this.online-1;
+		return this.online;
+	},
 
-partida.conecta = function(){
-	this.online = this.online+1;
-	return this.online;
-};
-partida.desconecta = function(){
-	this.online = this.online-1;
-	return this.online;
-};
+	get_status : function(){
+		var copy = new Object();
+		copy.online = this.online + '/' + this.num_users();
+		copy.turno = this.turno;
+		
+		return copy;
+	},
+	
+	users: [],
+	
+	num_users : function(){ 
+		return this.users.length;
+	},
+	
+	user_exists : function(user) {
+		for (i = 0;i < this.num_users();i++){
+			if (this.users[i].username == user) return i;
+		}
+		return false;
+	},
+	
+	user_create : function(user) {
+		this.users.push({
+						username:user,
+						apikey:Math.random()*10,
+						pos:{
+								x:null,
+								y:null
+							},
+						direction : null
+						});
+		return this.num_users() -1;
+	},
+	
+	user_update : function(index) {
+		this.users[index].apikey = Math.random()*10;	
+		return true
+	},
+	
+	
+	
+	login : function(user,password,apikey){
+		if ((user != '' && password != '') || (user != '' && (this.user_exists(user) !== false) && (apikey == this.users[this.user_exists(user)].apikey)))
+		//if (true)
+		{
+			//que pasa si es la primera vez que entra
+			var index = this.user_exists(user);
+
+			if (index === false){
+				
+				index = this.user_create(user);
+				return index;
+			}
+			//que pasa si el usuario ya existe y es una segunda vez 
+			else {
+				
+				this.user_update(index);
+				return index;
+			}
+		}
+		else return false;
+	}
+}
+
+partida.init();
+
 
 
 function make_game_status(){
-	return 'turno = ' + partida.turno + '<br>gente = <span id="users">' + partida.online + '</span>' ;
+	return partida.get_status();
 }
 
 //SOCKET.IO
@@ -57,14 +156,27 @@ io.sockets.on('connection', function(socket) {
 	//Cuando un cliente se conecta se le manda la información de partida
 	socket.emit('SC_game_status' , make_game_status());
 	//Tratar que un usuario se conecta
+	//Guardar en db el socket_id donde encaje la apikey 
 	
-	io.sockets.emit('SC_user_connect',partida.online);
+	io.sockets.emit('SC_user_connect',make_game_status());
 	
 	//Tratar que un usuario se desconecta 
 	socket.on('disconnect', function () {
 		console.log('disconnect');
 		partida.desconecta();
-		io.sockets.emit('SC_user_disconnect',partida.online);
+		io.sockets.emit('SC_user_disconnect',make_game_status());
+	});
+	
+	socket.on('CS_move_top', function () {
+		
+	});
+	socket.on('CS_move_right', function () {
+		
+	});
+	socket.on('CS_move_bottom', function () {
+		
+	});
+	socket.on('CS_move_left', function () {
 		
 	});
 });
@@ -102,13 +214,12 @@ http.createServer(function (req, res) {
   
 	try {
 		//pipe some details to the node console
-		console.log('Incoming Request from: ' +
+		/*console.log('Incoming Request from: ' +
 					 req.connection.remoteAddress +
-					' for href: ' + url.parse(req.url).href
-	);
+					' for href: ' + url.parse(req.url).href); */
 
 	//dispatch our request
-	dispatcher.dispatch(req, res); 
+	dispatcher.dispatch(req, res, partida); 
 
 	} catch (err) {
 		//handle errors gracefully

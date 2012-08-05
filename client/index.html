@@ -12,7 +12,7 @@
 	}
 
 	$(document).ready(function () {
-		if (ReadCookie('apikey')){
+		if (ReadCookie('username')){
 			console.log('hay cookie');
 			$('#nombre').val(ReadCookie('username'));
 			$('#apikey').val(ReadCookie('apikey'));

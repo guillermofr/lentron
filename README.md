@@ -4,24 +4,18 @@ lentron
 Nueva versión de lentron.
 
 Pronto se irán subiendo funcionalidades.
-
 Resumen de la nueva implementación:
 
 +NUEVOS CAMBIOS
 
 
+
+
 +SERVIDOR
 
-Otro punto sería usar NODE.js para la comunicación server-cliente
+Tanto el servidor http como el de la dinámica del juego están realizados sobre NODE.js
 
-Aun está en duda si tener los datos en un servidor apache y tirar de api o tener los datos en 
-SQLITE que guarde los datos en el local del servidor
-
-Se podría crear un login para crear usuarios o usar la tabla de users de la mlp
-
-en lugar de haber un proceso cron lanzando un php, puede ser un script hecho en node
-o un cron que lance node , habría que ver que estabilidad tiene para poder hacer eso
-
+Para la persistencia de los datos se utilizará fichero o sqlite (TODO)
 
 +CHAT
 Implementar un chat en tiempo real
@@ -31,32 +25,39 @@ y en el tablero poner bocadillos online sobre los concursantes, pero que permane
 Tambien , con node, se pueden actualizar en tiempo real si el usuario está conectado o
 desconectado
 
-
+Además puede que tenga su gracia indicar hacia que dirección está mirando cada usuario en cada momento
 
 +REPRESENTACION
-Una buena mejora sería implementar el juego para que en lugar de ser mostrado como imagen
-se base en dibujar algo en cliente mediante un volcado de datos que tiene el servidor
+Node.js volcará un dump de la situación del tablero como un objeto. Un array multidimensional con lo que hay 
+en cada una de las celdas
 
-la representación gráfica se facilita con la librería paperjs muy util para estas cosas , 
+la representación gráfica se facilita con la librería paper.js muy util para estas cosas , 
 se limitaría el acceso por móvil pero se pueden llegar a dibujar cosas muy chulas
 
 la api devuelve una colección de arrays , una para la información de cada jugador
 
-turno:"",
-ultimo_turno:"",
-tiempo_turno:"",
+turno:"", //TODO
+ultimo_turno:"", //TODO
+tiempo_turno:"", //TODO
 data{
-	[
-		id:""
-		nombre:""
-		cabeza:["",""]
-		cola:[["",""],["",""]..["",""]]
-	],
-	[
-		id:""
-		nombre:""
-		cabeza:["",""]
-		cola:[["",""],["",""]..["",""]]
-	],
+[[],[],[],[]],
+[[],[],[],[]],
+[[],[],[],[]],
+[[],[],[],[]]
 }
 
++CONTENIDO DE LAS CELDAS
+Para la cabeza de un jugador
+{id:4,type:'user'}
+
+para la cola de un jugador
+{id:4,type:'tail'}
+
+para una tumba
+{id:-1,type:'grave',users:[4,5]} 	// si hay choque contra cabeza
+{id:-1,type:'grave',users:[4]}		// si hay choque contra cola
+
+-- Las tumbas sirven para dejar una casilla con un solo elemento en lugar de una cabeza y una cola
+o dos cabezas. De esta forma en cada turno se mueven todas las cabezas y se recorre el tablero buscando 
+celdas con 2 objetos, si se encuentra alguna cabeza en estas celdas, se marca como muerto y se sustituye el contenido
+de la celda por una tumba(grave), quedando esta con un solo objeto.

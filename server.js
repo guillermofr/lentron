@@ -319,8 +319,6 @@ io.sockets.on('connection', function(socket) {
 //CRON PARA PASAR TURNO CADA X TIEMPO
 setInterval(function() {
 
-	partida.check();
-
 	
 	var turno = partida.avanza_turno();
 	if (turno) 

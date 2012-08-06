@@ -2,22 +2,21 @@ lentron
 =======
 
 Nueva versión de lentron.
-
 Pronto se irán subiendo funcionalidades.
 Resumen de la nueva implementación:
 
-+NUEVOS CAMBIOS
+NUEVOS CAMBIOS
+--------------
 
 
 
-
-+SERVIDOR
+### SERVIDOR
 
 Tanto el servidor http como el de la dinámica del juego están realizados sobre NODE.js
-
 Para la persistencia de los datos se utilizará fichero o sqlite (TODO)
 
-+CHAT
+### CHAT
+
 Implementar un chat en tiempo real
 con un chat general abajo, permanente
 y en el tablero poner bocadillos online sobre los concursantes, pero que permanezcan 2 segundos
@@ -27,7 +26,8 @@ desconectado
 
 Además puede que tenga su gracia indicar hacia que dirección está mirando cada usuario en cada momento
 
-+REPRESENTACION
+### REPRESENTACION
+
 Node.js volcará un dump de la situación del tablero como un objeto. Un array multidimensional con lo que hay 
 en cada una de las celdas
 
@@ -36,17 +36,17 @@ se limitaría el acceso por móvil pero se pueden llegar a dibujar cosas muy chu
 
 la api devuelve una colección de arrays , una para la información de cada jugador
 
-turno:"", //TODO
-ultimo_turno:"", //TODO
-tiempo_turno:"", //TODO
-data{
-[[],[],[],[]],
-[[],[],[],[]],
-[[],[],[],[]],
-[[],[],[],[]]
-}
+* turno:"", //TODO
+* ultimo_turno:"", //TODO
+* tiempo_turno:"", //TODO
+* data{
+* [[],[],[],[]],
+* [[],[],[],[]],
+* [[],[],[],[]],
+* [[],[],[],[]]
+* }
 
-+CONTENIDO DE LAS CELDAS
+### CONTENIDO DE LAS CELDAS
 
 Para la cabeza de un jugador
 

@@ -10,9 +10,10 @@ var md5 = require('MD5');
 //GAME 
 
 var partida = {
-
-	width : 5,
-	height : 5,
+	//configuration
+	turn_time : 10000,
+	width : 3,
+	height : 3,
 
 	init: function(){
 		//cargar persistencia si existe
@@ -24,6 +25,11 @@ var partida = {
 		this.hacer_gente(0);
 	},
 	
+	//estado de la partida
+	// 0 = no empezada, seleccionen sus asientos
+	// 1 = en curso, pasan turnos y empieza el funne
+	// 2 = terminada, partida parada
+	status : 0,
 	
 	
 	turno : 0,
@@ -39,10 +45,19 @@ var partida = {
 	},
 	
 	avanza_turno : function(){
-		this.turno = this.turno +1;
+		if (this.status == 1){
+			//si la partida está en curso
+			
+			//TODO, AKI TODA LA DINÁMICA DE MOVIMIENTOS Y CALCULO DE COLISIONES
+
+			this.turno = this.turno +1;
+		} else if (this.status == 0) {
+			//aqui se checkea si ha llegado la hora de empezar
 		
+			//TODO, aki hay que hacer el checkeo de la hora de inicio
+		
+		}
 		//console.log (JSON.stringify(this.tablero));
-		
 		return this.turno;
 	},
 	
@@ -56,12 +71,45 @@ var partida = {
 	
 	online : 0,
 
-	conecta : function(){
-		this.online = this.online+1;
+	conecta : function(data){
+	
+	console.log('llamo a conecta',data);
+	
+		var username = data.username;
+		var apikey = data.apikey;
+		var socket = data.socket;
+		
+		console.log('allowed',this.allowed(username,apikey));
+
+		if (this.allowed(username,apikey) !== false){
+			var user_index = this.user_exists(username);
+			if (user_index === false){
+				//no está registrado
+				
+			} else {
+				//está registrado
+				if (!this.users[user_index].online){
+					this.online = this.online+1;
+					this.users[user_index].online = true;
+				}
+				console.log();
+				this.users[user_index].socket.push(socket);
+			}
+		} 
+
 		return this.online;
 	},
-	desconecta : function(){
-		this.online = this.online-1;
+	desconecta : function(socket){
+		//console.log('se sale el socket',socket,this.users);
+		for (i = 0;i < this.users.length; i++){	
+				var pos = this.users[i].socket.indexOf(socket);
+				if (pos > -1) {
+					this.users[i].socket.splice( pos, 1 );
+					this.users[i].online = false;
+					this.online = this.online-1;
+					return this.online;
+				}
+		}
 		return this.online;
 	},
 
@@ -95,8 +143,9 @@ var partida = {
 								y:null
 							},
 						direction : null,
-						live : true,
-						online: false
+						live : false,
+						online: false,
+						socket: [],
 						});
 		return this.num_users() -1;
 	},
@@ -107,16 +156,23 @@ var partida = {
 	},
 	
 	tablero_move_user_start : function(move){
+		// siguiente posición es un número
+		if (isNaN(move.to.x) || isNaN(move.to.y)) return false;
+		// siguiente posición está dentro del tablero
 		if ((move.to.x >= this.width || move.to.y >= this.height || move.to.x < 0 || move.to.y < 0) 
 		|| (this.tablero[move.to.x][move.to.y].length > 0))
 		return false;
+		
 		if (move.from.x == null){
+			//la primera vez que te mueves, no vienes de ninguna parte
 			this.tablero[move.to.x][move.to.y].push({id:move.id,type:move.type});
 			return true;	
 		} else {
 			for (n = 0; n < this.tablero[move.from.x][move.from.y].length; n++){
 				if (this.tablero[move.from.x][move.from.y][n].id == move.id){
+					//me borro
 					this.tablero[move.from.x][move.from.y].splice(n,1);
+					//me añado
 					this.tablero[move.to.x][move.to.y].push({id:move.id,type:move.type});
 					return true;
 				}
@@ -162,9 +218,15 @@ var partida = {
 		return false;
 	},
 	
+	check_user: function(user,password){
+		//validar un usuario y contraseña
+		return (user != '' && password != '');
+		//TODO, hay que enviar esto a una api, o algo
+	},
 	
 	login : function(user,password,apikey){
-		if ((user != '' && password != '') || (user != '' && (this.user_exists(user) !== false) && (apikey == this.users[this.user_exists(user)].apikey)))
+
+		if (this.check_user(user,password) || (user != '' && (this.user_exists(user) !== false) && (apikey == this.users[this.user_exists(user)].apikey)))
 		//if (true)
 		{
 			//que pasa si es la primera vez que entra
@@ -177,7 +239,6 @@ var partida = {
 			}
 			//que pasa si el usuario ya existe y es una segunda vez 
 			else {
-				
 				this.user_update(index);
 				return index;
 			}
@@ -204,7 +265,9 @@ if (arguments==undefined){
 }
 
 var io = require('socket.io');
+	
 	io = io.listen(socket_port);
+	io.set('log level', 1);
    // console.log(io.server._handle);
 	if (io.server._handle == null){
 		console.log("PUERTO OCUPADO");
@@ -212,18 +275,23 @@ var io = require('socket.io');
 	}
 
 io.sockets.on('connection', function(socket) { 
-	partida.conecta();
+	//partida.conecta();
 	//Cuando un cliente se conecta se le manda la información de partida
 	socket.emit('SC_game_status' , make_game_status());
 	//Tratar que un usuario se conecta
 	//Guardar en db el socket_id donde encaje la apikey 
+	//io.sockets.emit('SC_user_connect',make_game_status());
 	
-	io.sockets.emit('SC_user_connect',make_game_status());
+	//Cuando un usuario dice que se conecta guardarmos su socket y status
+	socket.on('CS_connect', function (data) {
+		data.socket = socket.id;
+		partida.conecta(data);
+		io.sockets.emit('SC_user_connect',make_game_status());
+	});
 	
 	//Tratar que un usuario se desconecta 
 	socket.on('disconnect', function () {
-		console.log('disconnect');
-		partida.desconecta();
+		partida.desconecta(socket.id);
 		io.sockets.emit('SC_user_disconnect',make_game_status());
 	});
 	
@@ -246,13 +314,25 @@ io.sockets.on('connection', function(socket) {
 	});
 });
 
+
+
+//CRON PARA PASAR TURNO CADA X TIEMPO
 setInterval(function() {
+
+	partida.check();
+
 	
-	console.log('-- PASANDO AL TURNO Nº' + partida.avanza_turno() + ' --');
-	//actualizamos el estado del servidor en cada turno
+	var turno = partida.avanza_turno();
+	if (turno) 
+	console.log('-- PASANDO AL TURNO Nº' + turno + ' --');
+	else 
+	console.log('-- ESPERANDO A QUE EMPIECE LA PARTIDA --');
+	
+	//actualizamos el estado del tablero de los clientes en cada turno
 	io.sockets.emit('SC_game_status',make_game_status());
+	//console.log(partida.users);
 	
-}, 5000);
+}, partida.turn_time);
 
 
 //HTTP SERVER

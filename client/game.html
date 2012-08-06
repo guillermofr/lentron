@@ -69,6 +69,8 @@
 	$(document).ready(function () {
 		console.log('username: '+ ReadCookie('username') + ' APIKEY: ' + ReadCookie('apikey'));
 		
+		socket.emit('CS_connect',{username : ReadCookie('username'),apikey: ReadCookie('apikey')})
+		
 		$('#logout').click(function(){
 			RemoveCookie('apikey');
 			RemoveCookie('username');

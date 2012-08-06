@@ -47,13 +47,17 @@ data{
 }
 
 +CONTENIDO DE LAS CELDAS
+
 Para la cabeza de un jugador
+
 {id:4,type:'user'}
 
 para la cola de un jugador
+
 {id:4,type:'tail'}
 
 para una tumba
+
 {id:-1,type:'grave',users:[4,5]} 	// si hay choque contra cabeza
 {id:-1,type:'grave',users:[4]}		// si hay choque contra cola
 

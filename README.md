@@ -5,10 +5,20 @@ Nueva versión de lentron.
 Pronto se irán subiendo funcionalidades.
 Resumen de la nueva implementación:
 
+INSTALACIÓN
+-----------
+
+Para ejecutar el server simplemente hay que lanzar desde un terminal
+* node.exe server.js
+
+Para entrar al juego, el puerto de la partida está puesto a 5000.
+Dese un navegador
+* http://localhost:5000
+
+Para entrar , rellena user y pass, al entrar se crea el usuario.
+
 NUEVOS CAMBIOS
 --------------
-
-
 
 ### SERVIDOR
 

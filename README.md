@@ -1,5 +1,5 @@
-lentron
-=======
+lentron 3.0
+===========
 
 Nueva versión de lentron.
 Pronto se irán subiendo funcionalidades.

@@ -12,8 +12,11 @@ var md5 = require('MD5');
 var partida = {
 	//configuration
 	turn_time : 10000,
-	width : 3,
-	height : 3,
+	
+	last_turn_time : new Date(),
+	
+	width : 50,
+	height : 50,
 
 	init: function(){
 		//cargar persistencia si existe
@@ -25,13 +28,24 @@ var partida = {
 		this.hacer_gente(0);
 	},
 	
+	reset: function(){
+		this.tablero_create(this.width,this.height);
+		this.status = 0;
+		this.turno = 0;
+		this.users = [];
+		this.online = 0;
+	},
+	
+	start_game: function(){
+		this.status = 1;
+		
+	},
+	
 	//estado de la partida
 	// 0 = no empezada, seleccionen sus asientos
 	// 1 = en curso, pasan turnos y empieza el funne
 	// 2 = terminada, partida parada
-	status : 0,
-	
-	
+	status : 1,
 	turno : 0,
 	tablero : [],
 	
@@ -58,6 +72,7 @@ var partida = {
 		
 		}
 		//console.log (JSON.stringify(this.tablero));
+		this.last_turn_time = new Date();
 		return this.turno;
 	},
 	
@@ -69,11 +84,13 @@ var partida = {
 		}
 	},
 	
+	
+	
 	online : 0,
 
 	conecta : function(data){
 	
-	console.log('llamo a conecta',data);
+		console.log('llamo a conecta',data);
 	
 		var username = data.username;
 		var apikey = data.apikey;
@@ -95,10 +112,13 @@ var partida = {
 				console.log();
 				this.users[user_index].socket.push(socket);
 			}
-		} 
+		} else {
+			return -1;
+		}
 
 		return this.online;
-	},
+	}, 
+	
 	desconecta : function(socket){
 		//console.log('se sale el socket',socket,this.users);
 		for (i = 0;i < this.users.length; i++){	
@@ -118,6 +138,9 @@ var partida = {
 		copy.online = this.online + '/' + this.num_users();
 		copy.turno = this.turno;
 		copy.tablero = this.tablero;
+		copy.width = this.width;
+		copy.heigth = this.height;
+		copy.timer = 10 - ((new Date()) - this.last_turn_time)/1000
 		return copy;
 	},
 	
@@ -256,7 +279,7 @@ function make_game_status(){
 //SOCKET.IO
 
 //configurar el puerto por el que escucha, por defecto 415
-var arguments = process.argv.splice(2)[0]
+var arguments = process.argv.splice(2)[0];
 
 if (arguments==undefined){
 	socket_port = 415;
@@ -318,13 +341,11 @@ io.sockets.on('connection', function(socket) {
 
 //CRON PARA PASAR TURNO CADA X TIEMPO
 setInterval(function() {
-
-	
 	var turno = partida.avanza_turno();
 	if (turno) 
-	console.log('-- PASANDO AL TURNO Nº' + turno + ' --');
+	console.log('-- PASANDO AL TURNO Nº' + turno + ' -- ' + partida.last_turn_time);
 	else 
-	console.log('-- ESPERANDO A QUE EMPIECE LA PARTIDA --');
+	console.log('-- ESPERANDO A QUE EMPIECE LA PARTIDA -- ' + partida.last_turn_time);
 	
 	//actualizamos el estado del tablero de los clientes en cada turno
 	io.sockets.emit('SC_game_status',make_game_status());

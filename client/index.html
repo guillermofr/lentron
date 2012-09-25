@@ -23,12 +23,16 @@
 			console.log('username: '+ ReadCookie('username') + ' APIKEY: ' + ReadCookie('apikey'));
 		}
 	});
+	
+	//TODO, PARA SECURIZAR EL LOGIN, QUE AKI SE CALCULE EL MD5 DEL PASS Y LO MANDE POR POST
+	//PARA NO MANDAR LA PASS POR POST AL SERVER
+	
 </script>
 <body>
-<form method="post" action="">
-<input id="nombre" type="text" name="username" placeholder="username" />
-<input id="password" type="password" name="password" placeholder="password"  /> 
-<input id="apikey" type="hidden" name="apikey" />
-<button id="login"> Entrar </button> <br/>
-</form>
+	<form method="post" action="">
+		<input id="nombre" type="text" name="username" placeholder="username" />
+		<input id="password" type="password" name="password" placeholder="password"  /> 
+		<input id="apikey" type="hidden" name="apikey" />
+		<button id="login"> Entrar </button> <br/>
+	</form>
 </body>

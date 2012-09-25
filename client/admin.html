@@ -1,0 +1,24 @@
+<script src="./load/jquery.js"></script>
+<script src="./load/socket.io.js"></script>
+<script>
+
+$(document).ready(function () {
+		
+		function RemoveCookie(name){
+			document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+		}
+		
+		$('#logout').click(function(){
+			RemoveCookie('apikey');
+			RemoveCookie('username');
+			
+			window.location.replace(window.location.href);
+			
+		});
+});
+
+</script>
+
+<h1> Administración de Lentron </h1>
+
+<button id="logout">Salir</button>

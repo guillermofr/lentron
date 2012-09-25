@@ -7,7 +7,7 @@
 		$('#tablero').html('');
 		for (x= 0;x<tablero.length;x++){
 			for (y= 0;y<tablero[x].length;y++){
-				$('#tablero').append('[');
+				//$('#tablero').append('[');
 				if (tablero[x][y].length == 0)
 					$('#tablero').append('_');
 				else {		
@@ -15,7 +15,7 @@
 						$('#tablero').append(''+tablero[x][y][i].id+'');
 					}
 				}
-				$('#tablero').append(']');
+				//$('#tablero').append(']');
 			}
 			$('#tablero').append('<br>');
 		}
@@ -30,8 +30,9 @@
 	var socket = io.connect('http://localhost:415');
   
 	socket.on('SC_game_status', function (data) {
-		$('#game').html('Turno = ' + data.turno + " <br> <span id='online'>" + data.online + ' Personas online</span>' );
+		$('#game').html('Timer = <span id="timer">' + data.timer + '</span> secs to next turn <br> Turno = ' + data.turno + " <br> <span id='online'>" + data.online + ' Personas online</span>' );
 		//console.log(data.tablero);
+		$('#debug').html(JSON.stringify(data));
 		draw(data.tablero);
 		//$('#tablero').html(data.tablero);
 	});
@@ -71,6 +72,7 @@
 		
 		socket.emit('CS_connect',{username : ReadCookie('username'),apikey: ReadCookie('apikey')})
 		
+		
 		$('#logout').click(function(){
 			RemoveCookie('apikey');
 			RemoveCookie('username');
@@ -88,6 +90,11 @@
 			socket.emit('CS_set',pos);
 			console.log(pos);
 		});
+		
+		
+		setInterval(function(){
+			$('#timer').html(Math.round(100 * parseFloat($('#timer').html()) - 1)/100);
+		},10);
 			
 	});
 	
@@ -95,10 +102,28 @@
   
 </script>
 
+<style>
+	
+	#timer{
+		display: inline-block;
+		width: 30px;
+	}
+	
+	#debug{
+		float:right;
+		width: 400px;
+		font-size: 7px;
+	}
+	
+	#tablero {
+		font-size: 6px;
+	
+	}
 
+</style>
 
 <body>
-	
+	<textarea id="debug" rows="20" col="20"></textarea>
 	<div id="game">
 	logged in <BR>
 	WAITING STATUS...
@@ -108,5 +133,7 @@
 	<input type="text" id="x" name="x" size="2" value="1"/>
 	<input type="text" id="y" name="y" size="2" value="1"/>
 	<button id="set">Setearse</button>
+	
+	
 	
 </body>
